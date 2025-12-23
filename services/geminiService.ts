@@ -14,7 +14,7 @@ import type {
 } from "../types";
 
 // Model ID - Using Gemini 2.5 Flash Lite
-const MODEL_ID = "gemini-2.5-flash-preview-05-20";
+const MODEL_ID = "gemini-2.5-flash-lite";
 
 // Initialize Gemini AI
 const getAI = () => {
