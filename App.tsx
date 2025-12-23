@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     Stethoscope, Brain, Shield, Heart, Activity,
     ArrowRight, Search, FileText, Sparkles, Loader2,
-    AlertTriangle, CheckCircle, MessageCircle, LogOut, User, Clock, History
+    AlertTriangle, CheckCircle, MessageCircle, LogOut, User, Clock, History, Apple
 } from 'lucide-react';
 
 import Header from './components/Header';
@@ -14,6 +14,7 @@ import RiskIndicator from './components/RiskIndicator';
 import HealthChart from './components/HealthChart';
 import AuthForm from './components/AuthForm';
 import ConsultationHistory from './components/ConsultationHistory';
+import DietPlanForm from './components/DietPlanForm';
 
 import { analyzeSymptoms, getSecondOpinion } from './services/geminiService';
 import * as authService from './services/authService';
@@ -279,6 +280,13 @@ const App: React.FC = () => {
                         onViewConsultation={handleViewConsultation}
                     />
                 );
+            case 'diet-plan':
+                return (
+                    <DietPlanForm
+                        profile={profile}
+                        onSaveProfile={handleSaveProfile}
+                    />
+                );
             default:
                 return <HomeView onNavigate={setCurrentView} user={user} onShowAuth={() => setShowAuth(true)} />;
         }
@@ -381,6 +389,7 @@ const HeaderWithAuth: React.FC<HeaderWithAuthProps> = ({
                         {[
                             { view: 'consultation' as ViewState, label: 'Consultation', icon: <MessageCircle size={18} /> },
                             { view: 'second-opinion' as ViewState, label: 'Second Opinion', icon: <Stethoscope size={18} /> },
+                            { view: 'diet-plan' as ViewState, label: 'Diet Plan', icon: <Apple size={18} /> },
                         ].map((item) => (
                             <button
                                 key={item.view}

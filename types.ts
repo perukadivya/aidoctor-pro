@@ -141,7 +141,7 @@ export interface HealthRecommendation {
 }
 
 // App View State
-export type ViewState = 'home' | 'consultation' | 'second-opinion' | 'profile' | 'history';
+export type ViewState = 'home' | 'consultation' | 'second-opinion' | 'profile' | 'history' | 'diet-plan';
 
 // Loading State
 export interface LoadingState {
@@ -154,4 +154,54 @@ export interface AppError {
     code: string;
     message: string;
     details?: string;
+}
+
+// Diet Plan Types
+export type WeightGoal = 'lose' | 'gain' | 'maintain';
+
+export interface DietPlanRequest {
+    goal: WeightGoal;
+    targetWeight: number;
+    timeframe: string;
+    dietaryRestrictions: string[];
+    foodPreferences: string[];
+    mealsPerDay: number;
+}
+
+export interface Meal {
+    name: string;
+    time: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fats: number;
+    ingredients: string[];
+    instructions: string;
+    alternatives?: string[];
+}
+
+export interface DailyMealPlan {
+    day: string;
+    totalCalories: number;
+    meals: Meal[];
+    snacks: string[];
+    waterIntake: string;
+}
+
+export interface DietPlanResult {
+    goal: WeightGoal;
+    currentWeight: number;
+    targetWeight: number;
+    dailyCalorieTarget: number;
+    macroBreakdown: {
+        protein: number;
+        carbs: number;
+        fats: number;
+    };
+    weeklyPlan: DailyMealPlan[];
+    groceryList: string[];
+    tips: string[];
+    warnings: string[];
+    progressMilestones: { week: number; expectedWeight: number }[];
+    disclaimer: string;
 }

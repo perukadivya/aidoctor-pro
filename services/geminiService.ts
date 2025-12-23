@@ -8,8 +8,13 @@ import type {
     SecondOpinionResult,
     Symptom,
     PatientProfile,
-    HealthRecommendation
+    HealthRecommendation,
+    DietPlanRequest,
+    DietPlanResult
 } from "../types";
+
+// Model ID - Using Gemini 2.5 Flash Lite
+const MODEL_ID = "gemini-2.5-flash-preview-05-20";
 
 // Initialize Gemini AI
 const getAI = () => {
@@ -36,6 +41,7 @@ PATIENT PROFILE:
 - Age: ${profile.age} years old
 - Gender: ${profile.gender}
 - Weight: ${profile.weight} kg, Height: ${profile.height} cm
+- BMI: ${(profile.weight / Math.pow(profile.height / 100, 2)).toFixed(1)}
 - Existing Conditions: ${profile.conditions.length > 0 ? profile.conditions.join(', ') : 'None reported'}
 - Current Medications: ${profile.medications.length > 0 ? profile.medications.join(', ') : 'None'}
 - Known Allergies: ${profile.allergies.length > 0 ? profile.allergies.join(', ') : 'None'}
@@ -53,7 +59,6 @@ export const analyzeSymptoms = async (
     additionalNotes: string = ''
 ): Promise<DiagnosisResult> => {
     const ai = getAI();
-    const modelId = "gemini-2.0-flash";
 
     const prompt = `
 You are a helpful AI medical assistant. A patient is describing their symptoms and needs guidance.
@@ -84,7 +89,7 @@ Remember: You are providing information to help someone prepare for a doctor vis
 
     try {
         const response = await ai.models.generateContent({
-            model: modelId,
+            model: MODEL_ID,
             contents: prompt,
             config: {
                 systemInstruction: "You are AIDoctor Pro, a compassionate AI health assistant. Explain medical concepts in everyday language as if talking to a concerned family member. Always emphasize the importance of professional medical care while providing helpful, accurate information.",
@@ -142,7 +147,6 @@ export const getSecondOpinion = async (
     profile: PatientProfile | null = null
 ): Promise<SecondOpinionResult> => {
     const ai = getAI();
-    const modelId = "gemini-2.0-flash";
 
     const prompt = `
 You are a thoughtful AI medical assistant helping a patient understand their diagnosis better.
@@ -172,7 +176,7 @@ This is meant to help the patient have a more informed conversation with their h
 
     try {
         const response = await ai.models.generateContent({
-            model: modelId,
+            model: MODEL_ID,
             contents: prompt,
             config: {
                 systemInstruction: "You are AIDoctor Pro, providing thoughtful second opinion analysis. Be balanced - acknowledge the original diagnosis while offering additional perspectives. Never tell a patient their doctor is wrong, instead empower them with questions and considerations.",
@@ -218,13 +222,145 @@ This is meant to help the patient have a more informed conversation with their h
 };
 
 /**
+ * Generate personalized diet plan for weight management
+ */
+export const generateDietPlan = async (
+    profile: PatientProfile,
+    request: DietPlanRequest
+): Promise<DietPlanResult> => {
+    const ai = getAI();
+
+    const bmi = profile.weight / Math.pow(profile.height / 100, 2);
+    const weightDiff = request.targetWeight - profile.weight;
+    const goalDescription = request.goal === 'lose'
+        ? `lose ${Math.abs(weightDiff).toFixed(1)} kg`
+        : request.goal === 'gain'
+            ? `gain ${Math.abs(weightDiff).toFixed(1)} kg`
+            : 'maintain current weight';
+
+    const prompt = `
+You are a professional nutritionist AI assistant. Create a personalized diet plan.
+
+${formatProfile(profile)}
+Current BMI: ${bmi.toFixed(1)}
+
+WEIGHT GOAL: ${goalDescription} in ${request.timeframe}
+Current Weight: ${profile.weight} kg
+Target Weight: ${request.targetWeight} kg
+
+DIETARY RESTRICTIONS: ${request.dietaryRestrictions.length > 0 ? request.dietaryRestrictions.join(', ') : 'None'}
+FOOD PREFERENCES: ${request.foodPreferences.length > 0 ? request.foodPreferences.join(', ') : 'No specific preferences'}
+MEALS PER DAY: ${request.mealsPerDay}
+
+TASK: Create a comprehensive, realistic diet plan.
+
+GUIDELINES:
+1. Calculate appropriate daily calorie intake for the goal
+2. Provide balanced macro breakdown (protein, carbs, fats)
+3. Create a 7-day meal plan with specific meals and recipes
+4. Include practical, easy-to-prepare meals
+5. Consider the person's health conditions and allergies
+6. Provide a grocery list for the week
+7. Include helpful tips for success
+8. Set realistic weekly progress milestones
+9. Warn about any health risks based on their profile
+
+Make the meals delicious, varied, and achievable for someone with a normal lifestyle.
+`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: MODEL_ID,
+            contents: prompt,
+            config: {
+                systemInstruction: "You are a certified nutritionist AI. Provide scientifically-backed, personalized diet plans. Be encouraging but realistic. Always consider the person's health conditions and make safe recommendations.",
+                temperature: 0.4,
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        goal: { type: Type.STRING, enum: ['lose', 'gain', 'maintain'] },
+                        currentWeight: { type: Type.NUMBER },
+                        targetWeight: { type: Type.NUMBER },
+                        dailyCalorieTarget: { type: Type.NUMBER },
+                        macroBreakdown: {
+                            type: Type.OBJECT,
+                            properties: {
+                                protein: { type: Type.NUMBER, description: "percentage" },
+                                carbs: { type: Type.NUMBER, description: "percentage" },
+                                fats: { type: Type.NUMBER, description: "percentage" }
+                            },
+                            required: ['protein', 'carbs', 'fats']
+                        },
+                        weeklyPlan: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    day: { type: Type.STRING },
+                                    totalCalories: { type: Type.NUMBER },
+                                    meals: {
+                                        type: Type.ARRAY,
+                                        items: {
+                                            type: Type.OBJECT,
+                                            properties: {
+                                                name: { type: Type.STRING },
+                                                time: { type: Type.STRING },
+                                                calories: { type: Type.NUMBER },
+                                                protein: { type: Type.NUMBER },
+                                                carbs: { type: Type.NUMBER },
+                                                fats: { type: Type.NUMBER },
+                                                ingredients: { type: Type.ARRAY, items: { type: Type.STRING } },
+                                                instructions: { type: Type.STRING },
+                                                alternatives: { type: Type.ARRAY, items: { type: Type.STRING } }
+                                            },
+                                            required: ['name', 'time', 'calories', 'protein', 'carbs', 'fats', 'ingredients', 'instructions']
+                                        }
+                                    },
+                                    snacks: { type: Type.ARRAY, items: { type: Type.STRING } },
+                                    waterIntake: { type: Type.STRING }
+                                },
+                                required: ['day', 'totalCalories', 'meals', 'snacks', 'waterIntake']
+                            }
+                        },
+                        groceryList: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        tips: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        warnings: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        progressMilestones: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    week: { type: Type.NUMBER },
+                                    expectedWeight: { type: Type.NUMBER }
+                                },
+                                required: ['week', 'expectedWeight']
+                            }
+                        },
+                        disclaimer: { type: Type.STRING }
+                    },
+                    required: ['goal', 'currentWeight', 'targetWeight', 'dailyCalorieTarget', 'macroBreakdown', 'weeklyPlan', 'groceryList', 'tips', 'disclaimer']
+                }
+            }
+        });
+
+        const text = response.text;
+        if (!text) throw new Error("No response from AI");
+        return JSON.parse(text) as DietPlanResult;
+
+    } catch (error) {
+        console.error("Diet plan generation failed:", error);
+        throw error;
+    }
+};
+
+/**
  * Generate personalized health recommendations
  */
 export const generateHealthRecommendations = async (
     profile: PatientProfile
 ): Promise<HealthRecommendation[]> => {
     const ai = getAI();
-    const modelId = "gemini-2.0-flash";
 
     const prompt = `
 Based on this patient's health profile, provide personalized wellness recommendations.
@@ -243,7 +379,7 @@ Focus on simple changes that can make a real difference. Prioritize based on the
 
     try {
         const response = await ai.models.generateContent({
-            model: modelId,
+            model: MODEL_ID,
             contents: prompt,
             config: {
                 systemInstruction: "Provide friendly, encouraging health recommendations. Focus on achievable goals and positive changes.",
