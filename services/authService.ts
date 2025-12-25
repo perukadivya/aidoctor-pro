@@ -1,5 +1,5 @@
 // ==========================================
-// AIDoctor Pro - Authentication Service
+// AI Health Pro - Authentication Service
 // ==========================================
 
 import type { PatientProfile, ConsultationSession } from '../types';

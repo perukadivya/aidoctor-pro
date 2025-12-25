@@ -1,5 +1,5 @@
 // ==========================================
-// AIDoctor Pro - Gemini AI Service
+// AI Health Pro - Gemini AI Service
 // ==========================================
 
 import { GoogleGenAI, Type } from "@google/genai";
@@ -93,7 +93,7 @@ Remember: You are providing information to help someone prepare for a doctor vis
             model: MODEL_ID,
             contents: prompt,
             config: {
-                systemInstruction: "You are AIDoctor Pro, a compassionate AI health assistant. Explain medical concepts in everyday language as if talking to a concerned family member. Always emphasize the importance of professional medical care while providing helpful, accurate information.",
+                systemInstruction: "You are AI Health Pro, a compassionate AI health assistant. Explain medical concepts in everyday language as if talking to a concerned family member. Always emphasize the importance of professional medical care while providing helpful, accurate information.",
                 temperature: 0.3,
                 responseMimeType: "application/json",
                 responseSchema: {
@@ -180,7 +180,7 @@ This is meant to help the patient have a more informed conversation with their h
             model: MODEL_ID,
             contents: prompt,
             config: {
-                systemInstruction: "You are AIDoctor Pro, providing thoughtful second opinion analysis. Be balanced - acknowledge the original diagnosis while offering additional perspectives. Never tell a patient their doctor is wrong, instead empower them with questions and considerations.",
+                systemInstruction: "You are AI Health Pro, providing thoughtful second opinion analysis. Be balanced - acknowledge the original diagnosis while offering additional perspectives. Never tell a patient their doctor is wrong, instead empower them with questions and considerations.",
                 temperature: 0.3,
                 responseMimeType: "application/json",
                 responseSchema: {

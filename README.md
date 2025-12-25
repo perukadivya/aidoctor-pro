@@ -1,8 +1,8 @@
-# AIDoctor Pro 🩺
+# AI Health Pro 🩺
 
 **AI-Powered Medical Second Opinion Platform** built with React, TypeScript, Vite, and Google Gemini AI.
 
-![AIDoctor Pro](https://img.shields.io/badge/Powered%20by-Gemini%20AI-blue)
+![AI Health Pro](https://img.shields.io/badge/Powered%20by-Gemini%20AI-blue)
 ![React](https://img.shields.io/badge/React-19-61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6)
 
@@ -86,7 +86,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## ⚠️ Disclaimer
 
-> **AIDoctor Pro is for educational and informational purposes only.**
+> **AI Health Pro is for educational and informational purposes only.**
 > It does not provide medical diagnoses or replace professional healthcare.
 > Always consult qualified healthcare providers for medical decisions.
 > If experiencing a medical emergency, call your local emergency services.

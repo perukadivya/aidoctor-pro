@@ -65,10 +65,10 @@ const Header: React.FC<HeaderProps> = ({ currentView, onNavigate }) => {
                             WebkitTextFillColor: 'transparent',
                             margin: 0,
                         }}>
-                            AIDoctor Pro
+                            AI Health Pro
                         </h1>
                         <p style={{ fontSize: '0.7rem', color: '#94a3b8', margin: 0 }}>
-                            AI Medical Advisor
+                            AI Health Advisor
                         </p>
                     </div>
                 </div>

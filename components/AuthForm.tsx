@@ -99,7 +99,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onRegister }) => {
                     <p style={{ fontSize: '0.95rem', color: '#94a3b8' }}>
                         {isLogin
                             ? 'Sign in to access your health records'
-                            : 'Join AIDoctor Pro to save your consultations'}
+                            : 'Join AI Health Pro to save your consultations'}
                     </p>
                 </div>
 

@@ -1,5 +1,5 @@
 // ==========================================
-// AIDoctor Pro - Type Definitions
+// AI Health Pro - Type Definitions
 // ==========================================
 
 // Medical Conditions

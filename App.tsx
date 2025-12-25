@@ -358,10 +358,10 @@ const HeaderWithAuth: React.FC<HeaderWithAuthProps> = ({
                             WebkitTextFillColor: 'transparent',
                             margin: 0,
                         }}>
-                            AIDoctor Pro
+                            AI Health Pro
                         </h1>
                         <p style={{ fontSize: '0.7rem', color: '#94a3b8', margin: 0 }}>
-                            AI Medical Advisor
+                            AI Health Advisor
                         </p>
                     </div>
                 </div>
@@ -699,7 +699,7 @@ const HomeView: React.FC<HomeViewProps> = ({ onNavigate, user, onShowAuth }) => 
             <section className="section">
                 <div className="container">
                     <div className="section-header">
-                        <h2>How AIDoctor Pro Helps You</h2>
+                        <h2>How AI Health Pro Helps You</h2>
                         <p style={{ color: '#94a3b8' }}>
                             Empowering you with AI-driven health insights in simple, understandable language.
                         </p>
@@ -750,7 +750,7 @@ const HomeView: React.FC<HomeViewProps> = ({ onNavigate, user, onShowAuth }) => 
                                 Medical Disclaimer
                             </h4>
                             <p style={{ fontSize: '0.85rem', color: '#fcd34d', margin: 0, lineHeight: 1.6 }}>
-                                AIDoctor Pro is designed for <strong>educational and informational purposes only</strong>.
+                                AI Health Pro is designed for <strong>educational and informational purposes only</strong>.
                                 It does not provide medical diagnoses or replace professional healthcare.
                                 Always consult qualified healthcare providers for medical decisions.
                             </p>
@@ -1265,10 +1265,10 @@ const Footer: React.FC = () => {
             <div className="container" style={{ textAlign: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                     <Stethoscope size={20} color="#3b82f6" />
-                    <span style={{ fontSize: '1rem', fontWeight: 600, color: '#f8fafc' }}>AIDoctor Pro</span>
+                    <span style={{ fontSize: '1rem', fontWeight: 600, color: '#f8fafc' }}>AI Health Pro</span>
                 </div>
                 <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>
-                    © {new Date().getFullYear()} AIDoctor Pro. For educational purposes only. Not a substitute for professional medical advice.
+                    © {new Date().getFullYear()} AI Health Pro. For educational purposes only. Not a substitute for professional medical advice.
                 </p>
             </div>
         </footer>
