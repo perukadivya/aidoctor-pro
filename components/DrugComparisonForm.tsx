@@ -1,10 +1,44 @@
 import React, { useState } from 'react';
 import {
     Pill, Search, Shield, Leaf, AlertTriangle, ChevronDown, ChevronUp,
-    Sparkles, Loader2, DollarSign, CheckCircle, XCircle, Info, Apple
+    Sparkles, Loader2, DollarSign, CheckCircle, XCircle, Info, Apple, BarChart3
 } from 'lucide-react';
 import { compareDrugs } from '../services/geminiService';
 import type { DrugComparisonResult, DrugAlternative, NaturalAlternative } from '../types';
+
+// Score Bar Component
+const ScoreBar: React.FC<{ score: number; label: string; color: string }> = ({ score, label, color }) => {
+    const getScoreColor = (s: number) => {
+        if (s >= 8) return '#10b981';
+        if (s >= 6) return '#22c55e';
+        if (s >= 4) return '#f59e0b';
+        return '#ef4444';
+    };
+    const displayColor = color || getScoreColor(score);
+
+    return (
+        <div style={{ marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem' }}>
+                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{label}</span>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: displayColor }}>{score}/10</span>
+            </div>
+            <div style={{
+                height: '8px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '100px',
+                overflow: 'hidden',
+            }}>
+                <div style={{
+                    width: `${score * 10}%`,
+                    height: '100%',
+                    background: `linear-gradient(90deg, ${displayColor}80 0%, ${displayColor} 100%)`,
+                    borderRadius: '100px',
+                    transition: 'width 500ms ease-out',
+                }} />
+            </div>
+        </div>
+    );
+};
 
 const DrugComparisonForm: React.FC = () => {
     const [drugName, setDrugName] = useState('');
@@ -18,7 +52,7 @@ const DrugComparisonForm: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<DrugComparisonResult | null>(null);
-    const [activeTab, setActiveTab] = useState<'info' | 'alternatives' | 'natural'>('info');
+    const [activeTab, setActiveTab] = useState<'info' | 'alternatives' | 'natural' | 'chart'>('info');
 
     const handleCompare = async () => {
         if (!drugName.trim()) {
@@ -280,6 +314,7 @@ const DrugComparisonForm: React.FC = () => {
                         }}>
                             {[
                                 { id: 'info' as const, label: 'Drug Info', icon: Info, color: '#3b82f6' },
+                                { id: 'chart' as const, label: 'Comparison', icon: BarChart3, color: '#8b5cf6' },
                                 { id: 'alternatives' as const, label: 'Safer Alternatives', icon: Shield, color: '#10b981' },
                                 { id: 'natural' as const, label: 'Natural Foods', icon: Apple, color: '#f59e0b' },
                             ].map((tab) => (
@@ -309,7 +344,8 @@ const DrugComparisonForm: React.FC = () => {
 
                         {/* Tab Content */}
                         {activeTab === 'info' && <DrugInfoTab drug={result.originalDrug} warnings={result.interactionWarnings} advice={result.generalAdvice} />}
-                        {activeTab === 'alternatives' && <AlternativesTab alternatives={result.saferAlternatives} />}
+                        {activeTab === 'chart' && <ComparisonChart result={result} />}
+                        {activeTab === 'alternatives' && <AlternativesTab alternatives={result.saferAlternatives} originalDrug={result.originalDrug} />}
                         {activeTab === 'natural' && <NaturalTab alternatives={result.naturalAlternatives} />}
 
                         {/* Disclaimer */}
@@ -393,6 +429,15 @@ const DrugInfoTab: React.FC<{
                         Average Cost: {drug.averageCost}
                     </div>
                 )}
+            </div>
+
+            {/* Safety & Effectiveness Scores */}
+            <div style={cardStyle}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#f8fafc', marginBottom: '1rem' }}>
+                    📊 Safety & Effectiveness Scores
+                </h3>
+                <ScoreBar score={drug.safetyScore || 0} label="Safety Score" color="#10b981" />
+                <ScoreBar score={drug.effectivenessScore || 0} label="Effectiveness Score" color="#3b82f6" />
             </div>
 
             {/* Common Uses */}
@@ -480,8 +525,185 @@ const DrugInfoTab: React.FC<{
     );
 };
 
+// Comparison Chart Component
+const ComparisonChart: React.FC<{ result: DrugComparisonResult }> = ({ result }) => {
+    const { originalDrug, saferAlternatives, naturalAlternatives } = result;
+
+    const cardStyle: React.CSSProperties = {
+        background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '16px',
+        padding: '1.5rem',
+        marginBottom: '1rem',
+    };
+
+    const getScoreBarColor = (score: number) => {
+        if (score >= 8) return '#10b981';
+        if (score >= 6) return '#22c55e';
+        if (score >= 4) return '#f59e0b';
+        return '#ef4444';
+    };
+
+    // Combine all drugs for comparison
+    const allDrugs = [
+        { name: originalDrug.name, safety: originalDrug.safetyScore || 0, effectiveness: originalDrug.effectivenessScore || 0, type: 'Original' },
+        ...saferAlternatives.map(alt => ({
+            name: alt.name,
+            safety: alt.safetyScore || 0,
+            effectiveness: alt.effectivenessScore || 0,
+            type: 'Alternative'
+        }))
+    ];
+
+    return (
+        <>
+            {/* Main Comparison Chart */}
+            <div style={cardStyle}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#f8fafc', marginBottom: '1.5rem' }}>
+                    📊 Drug Comparison Chart
+                </h3>
+
+                {/* Legend */}
+                <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{ width: '16px', height: '16px', background: '#10b981', borderRadius: '4px' }} />
+                        <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Safety</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{ width: '16px', height: '16px', background: '#3b82f6', borderRadius: '4px' }} />
+                        <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Effectiveness</span>
+                    </div>
+                </div>
+
+                {/* Chart Bars */}
+                {allDrugs.map((drug, i) => (
+                    <div key={i} style={{ marginBottom: '1.25rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#f8fafc' }}>{drug.name}</span>
+                                {drug.type === 'Original' && (
+                                    <span style={{
+                                        padding: '0.125rem 0.5rem',
+                                        fontSize: '0.65rem',
+                                        fontWeight: 600,
+                                        background: 'rgba(139, 92, 246, 0.2)',
+                                        color: '#a78bfa',
+                                        borderRadius: '100px',
+                                    }}>
+                                        Current
+                                    </span>
+                                )}
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.8rem' }}>
+                                <span style={{ color: '#10b981' }}>{drug.safety}/10</span>
+                                <span style={{ color: '#3b82f6' }}>{drug.effectiveness}/10</span>
+                            </div>
+                        </div>
+
+                        {/* Double bar */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                            {/* Safety Bar */}
+                            <div style={{
+                                height: '10px',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                borderRadius: '100px',
+                                overflow: 'hidden',
+                            }}>
+                                <div style={{
+                                    width: `${drug.safety * 10}%`,
+                                    height: '100%',
+                                    background: `linear-gradient(90deg, #10b98180 0%, #10b981 100%)`,
+                                    borderRadius: '100px',
+                                    transition: 'width 600ms ease-out',
+                                }} />
+                            </div>
+                            {/* Effectiveness Bar */}
+                            <div style={{
+                                height: '10px',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                borderRadius: '100px',
+                                overflow: 'hidden',
+                            }}>
+                                <div style={{
+                                    width: `${drug.effectiveness * 10}%`,
+                                    height: '100%',
+                                    background: `linear-gradient(90deg, #3b82f680 0%, #3b82f6 100%)`,
+                                    borderRadius: '100px',
+                                    transition: 'width 600ms ease-out',
+                                }} />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Summary Card */}
+            <div style={{
+                ...cardStyle,
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(15, 23, 42, 0.9) 100%)',
+                borderColor: 'rgba(16, 185, 129, 0.3)',
+            }}>
+                <h4 style={{ fontSize: '1rem', fontWeight: 600, color: '#34d399', marginBottom: '0.75rem' }}>
+                    🎯 Quick Summary
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                    <div>
+                        <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.25rem' }}>Safest Option</p>
+                        <p style={{ fontSize: '1rem', fontWeight: 600, color: '#f8fafc', margin: 0 }}>
+                            {allDrugs.reduce((prev, curr) => prev.safety > curr.safety ? prev : curr).name}
+                        </p>
+                    </div>
+                    <div>
+                        <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.25rem' }}>Most Effective</p>
+                        <p style={{ fontSize: '1rem', fontWeight: 600, color: '#f8fafc', margin: 0 }}>
+                            {allDrugs.reduce((prev, curr) => prev.effectiveness > curr.effectiveness ? prev : curr).name}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Natural Alternatives Comparison */}
+            {naturalAlternatives.length > 0 && (
+                <div style={cardStyle}>
+                    <h4 style={{ fontSize: '1rem', fontWeight: 600, color: '#f59e0b', marginBottom: '1rem' }}>
+                        🌿 Natural Alternatives Effectiveness
+                    </h4>
+                    {naturalAlternatives.slice(0, 5).map((alt, i) => (
+                        <div key={i} style={{ marginBottom: '0.75rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                                <span style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>{alt.name}</span>
+                                <span style={{
+                                    fontSize: '0.8rem',
+                                    fontWeight: 600,
+                                    color: getScoreBarColor(alt.effectivenessScore || 0)
+                                }}>
+                                    {alt.effectivenessScore || 0}/10
+                                </span>
+                            </div>
+                            <div style={{
+                                height: '6px',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                borderRadius: '100px',
+                                overflow: 'hidden',
+                            }}>
+                                <div style={{
+                                    width: `${(alt.effectivenessScore || 0) * 10}%`,
+                                    height: '100%',
+                                    background: `linear-gradient(90deg, ${getScoreBarColor(alt.effectivenessScore || 0)}80 0%, ${getScoreBarColor(alt.effectivenessScore || 0)} 100%)`,
+                                    borderRadius: '100px',
+                                    transition: 'width 500ms ease-out',
+                                }} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </>
+    );
+};
+
 // Alternatives Tab
-const AlternativesTab: React.FC<{ alternatives: DrugAlternative[] }> = ({ alternatives }) => {
+const AlternativesTab: React.FC<{ alternatives: DrugAlternative[]; originalDrug: DrugComparisonResult['originalDrug'] }> = ({ alternatives, originalDrug }) => {
     const [expanded, setExpanded] = useState<number | null>(null);
 
     const getSafetyColor = (rating: string) => {

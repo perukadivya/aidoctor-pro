@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stethoscope, Menu, X, User, MessageCircle, Home } from 'lucide-react';
+import { Stethoscope, Menu, X, User, Home, Pill } from 'lucide-react';
 import type { ViewState } from '../types';
 
 interface HeaderProps {
@@ -12,7 +12,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, onNavigate }) => {
 
     const navItems: { view: ViewState; label: string; icon: React.ReactNode }[] = [
         { view: 'home', label: 'Home', icon: <Home size={18} /> },
-        { view: 'consultation', label: 'Consultation', icon: <MessageCircle size={18} /> },
+        { view: 'drug-compare', label: 'Drug Compare', icon: <Pill size={18} /> },
         { view: 'second-opinion', label: 'Second Opinion', icon: <Stethoscope size={18} /> },
         { view: 'profile', label: 'Profile', icon: <User size={18} /> },
     ];

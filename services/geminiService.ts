@@ -471,9 +471,11 @@ GUIDELINES:
                                 sideEffects: { type: Type.ARRAY, items: { type: Type.STRING } },
                                 warnings: { type: Type.ARRAY, items: { type: Type.STRING } },
                                 averageCost: { type: Type.STRING },
-                                prescription: { type: Type.BOOLEAN }
+                                prescription: { type: Type.BOOLEAN },
+                                safetyScore: { type: Type.NUMBER },
+                                effectivenessScore: { type: Type.NUMBER }
                             },
-                            required: ['name', 'genericName', 'drugClass', 'commonUses', 'sideEffects', 'warnings', 'prescription']
+                            required: ['name', 'genericName', 'drugClass', 'commonUses', 'sideEffects', 'warnings', 'prescription', 'safetyScore', 'effectivenessScore']
                         },
                         saferAlternatives: {
                             type: Type.ARRAY,
@@ -486,9 +488,11 @@ GUIDELINES:
                                     reason: { type: Type.STRING },
                                     costComparison: { type: Type.STRING, enum: ['Cheaper', 'Similar', 'More Expensive'] },
                                     sideEffectComparison: { type: Type.STRING },
-                                    effectiveness: { type: Type.STRING }
+                                    effectiveness: { type: Type.STRING },
+                                    safetyScore: { type: Type.NUMBER },
+                                    effectivenessScore: { type: Type.NUMBER }
                                 },
-                                required: ['name', 'genericName', 'safetyRating', 'reason', 'costComparison', 'effectiveness']
+                                required: ['name', 'genericName', 'safetyRating', 'reason', 'costComparison', 'effectiveness', 'safetyScore', 'effectivenessScore']
                             }
                         },
                         naturalAlternatives: {
@@ -502,9 +506,10 @@ GUIDELINES:
                                     howToUse: { type: Type.STRING },
                                     evidenceLevel: { type: Type.STRING, enum: ['Strong', 'Moderate', 'Limited'] },
                                     warnings: { type: Type.ARRAY, items: { type: Type.STRING } },
-                                    foodSources: { type: Type.ARRAY, items: { type: Type.STRING } }
+                                    foodSources: { type: Type.ARRAY, items: { type: Type.STRING } },
+                                    effectivenessScore: { type: Type.NUMBER }
                                 },
-                                required: ['name', 'type', 'benefits', 'howToUse', 'evidenceLevel', 'warnings']
+                                required: ['name', 'type', 'benefits', 'howToUse', 'evidenceLevel', 'warnings', 'effectivenessScore']
                             }
                         },
                         interactionWarnings: { type: Type.ARRAY, items: { type: Type.STRING } },

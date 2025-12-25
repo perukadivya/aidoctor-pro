@@ -216,6 +216,8 @@ export interface DrugInfo {
     warnings: string[];
     averageCost: string;
     prescription: boolean;
+    safetyScore: number; // 1-10 scale
+    effectivenessScore: number; // 1-10 scale
 }
 
 export interface DrugAlternative {
@@ -226,6 +228,8 @@ export interface DrugAlternative {
     costComparison: 'Cheaper' | 'Similar' | 'More Expensive';
     sideEffectComparison: string;
     effectiveness: string;
+    safetyScore: number; // 1-10 scale
+    effectivenessScore: number; // 1-10 scale
 }
 
 export interface NaturalAlternative {
@@ -236,6 +240,7 @@ export interface NaturalAlternative {
     evidenceLevel: 'Strong' | 'Moderate' | 'Limited';
     warnings: string[];
     foodSources?: string[];
+    effectivenessScore: number; // 1-10 scale
 }
 
 export interface DrugComparisonResult {
