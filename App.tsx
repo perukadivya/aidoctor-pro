@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     Stethoscope, Brain, Shield, Heart, Activity,
     ArrowRight, Search, FileText, Sparkles, Loader2,
-    AlertTriangle, CheckCircle, MessageCircle, LogOut, User, Clock, History, Apple
+    AlertTriangle, CheckCircle, MessageCircle, LogOut, User, Clock, History, Apple, Pill
 } from 'lucide-react';
 
 import Header from './components/Header';
@@ -15,6 +15,7 @@ import HealthChart from './components/HealthChart';
 import AuthForm from './components/AuthForm';
 import ConsultationHistory from './components/ConsultationHistory';
 import DietPlanForm from './components/DietPlanForm';
+import DrugComparisonForm from './components/DrugComparisonForm';
 
 import { analyzeSymptoms, getSecondOpinion } from './services/geminiService';
 import * as authService from './services/authService';
@@ -132,11 +133,11 @@ const App: React.FC = () => {
         }
     };
 
-    // View consultation details
+    // View consultation details (redirect to second-opinion which has the history view)
     const handleViewConsultation = (consultation: ConsultationSession) => {
         setSymptoms(consultation.symptoms);
         setDiagnosisResult(consultation.diagnosis || null);
-        setCurrentView('consultation');
+        setCurrentView('second-opinion');
     };
 
     // Analyze symptoms
@@ -223,25 +224,8 @@ const App: React.FC = () => {
         switch (currentView) {
             case 'home':
                 return <HomeView onNavigate={setCurrentView} user={user} onShowAuth={() => setShowAuth(true)} />;
-            case 'consultation':
-                return (
-                    <ConsultationView
-                        profile={profile}
-                        onSaveProfile={handleSaveProfile}
-                        symptoms={symptoms}
-                        onSymptomsChange={setSymptoms}
-                        additionalNotes={additionalNotes}
-                        onNotesChange={setAdditionalNotes}
-                        onAnalyze={handleAnalyzeSymptoms}
-                        isAnalyzing={isAnalyzing}
-                        result={diagnosisResult}
-                        error={error}
-                        user={user}
-                        consultations={consultations}
-                        onDeleteConsultation={handleDeleteConsultation}
-                        onViewConsultation={handleViewConsultation}
-                    />
-                );
+            case 'drug-compare':
+                return <DrugComparisonForm />;
             case 'second-opinion':
                 return (
                     <SecondOpinionView
@@ -387,7 +371,7 @@ const HeaderWithAuth: React.FC<HeaderWithAuthProps> = ({
                     {/* Navigation */}
                     <nav style={{ display: 'flex', gap: '0.5rem' }}>
                         {[
-                            { view: 'consultation' as ViewState, label: 'Consultation', icon: <MessageCircle size={18} /> },
+                            { view: 'drug-compare' as ViewState, label: 'Drug Compare', icon: <Pill size={18} /> },
                             { view: 'second-opinion' as ViewState, label: 'Second Opinion', icon: <Stethoscope size={18} /> },
                             { view: 'diet-plan' as ViewState, label: 'Diet Plan', icon: <Apple size={18} /> },
                         ].map((item) => (
@@ -670,12 +654,12 @@ const HomeView: React.FC<HomeViewProps> = ({ onNavigate, user, onShowAuth }) => 
 
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                         <button
-                            onClick={() => onNavigate('consultation')}
+                            onClick={() => onNavigate('drug-compare')}
                             className="btn btn-primary btn-lg"
                             style={{ minWidth: '200px' }}
                         >
-                            <MessageCircle size={20} />
-                            Start Consultation
+                            <Pill size={20} />
+                            Compare Drugs
                         </button>
                         {!user && (
                             <button

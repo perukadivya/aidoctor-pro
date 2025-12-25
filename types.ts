@@ -141,7 +141,7 @@ export interface HealthRecommendation {
 }
 
 // App View State
-export type ViewState = 'home' | 'consultation' | 'second-opinion' | 'profile' | 'history' | 'diet-plan';
+export type ViewState = 'home' | 'drug-compare' | 'second-opinion' | 'profile' | 'history' | 'diet-plan';
 
 // Loading State
 export interface LoadingState {
@@ -203,5 +203,46 @@ export interface DietPlanResult {
     tips: string[];
     warnings: string[];
     progressMilestones: { week: number; expectedWeight: number }[];
+    disclaimer: string;
+}
+
+// Drug Comparison Types
+export interface DrugInfo {
+    name: string;
+    genericName: string;
+    drugClass: string;
+    commonUses: string[];
+    sideEffects: string[];
+    warnings: string[];
+    averageCost: string;
+    prescription: boolean;
+}
+
+export interface DrugAlternative {
+    name: string;
+    genericName: string;
+    safetyRating: 'Safer' | 'Similar' | 'Use Caution';
+    reason: string;
+    costComparison: 'Cheaper' | 'Similar' | 'More Expensive';
+    sideEffectComparison: string;
+    effectiveness: string;
+}
+
+export interface NaturalAlternative {
+    name: string;
+    type: 'Food' | 'Herb' | 'Supplement' | 'Lifestyle';
+    benefits: string[];
+    howToUse: string;
+    evidenceLevel: 'Strong' | 'Moderate' | 'Limited';
+    warnings: string[];
+    foodSources?: string[];
+}
+
+export interface DrugComparisonResult {
+    originalDrug: DrugInfo;
+    saferAlternatives: DrugAlternative[];
+    naturalAlternatives: NaturalAlternative[];
+    interactionWarnings: string[];
+    generalAdvice: string[];
     disclaimer: string;
 }

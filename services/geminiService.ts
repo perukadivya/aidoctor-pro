@@ -10,7 +10,8 @@ import type {
     PatientProfile,
     HealthRecommendation,
     DietPlanRequest,
-    DietPlanResult
+    DietPlanResult,
+    DrugComparisonResult
 } from "../types";
 
 // Model ID - Using Gemini 2.5 Flash Lite
@@ -408,6 +409,119 @@ Focus on simple changes that can make a real difference. Prioritize based on the
 
     } catch (error) {
         console.error("Recommendations generation failed:", error);
+        throw error;
+    }
+};
+
+/**
+ * Compare drugs and find safer alternatives + natural food replacements
+ */
+export const compareDrugs = async (
+    drugName: string,
+    currentMedications: string[] = [],
+    healthConditions: string[] = [],
+    allergies: string[] = []
+): Promise<DrugComparisonResult> => {
+    const ai = getAI();
+
+    const prompt = `
+You are a pharmaceutical expert AI assistant helping users understand their medications and find safer alternatives.
+
+DRUG TO ANALYZE: ${drugName}
+
+PATIENT CONTEXT:
+- Current Medications: ${currentMedications.length > 0 ? currentMedications.join(', ') : 'None specified'}
+- Health Conditions: ${healthConditions.length > 0 ? healthConditions.join(', ') : 'None specified'}
+- Known Allergies: ${allergies.length > 0 ? allergies.join(', ') : 'None'}
+
+TASKS:
+1. Provide detailed information about the drug
+2. Suggest SAFER pharmaceutical alternatives (if they exist)
+3. Recommend NATURAL alternatives including foods, herbs, and lifestyle changes
+4. Warn about potential drug interactions
+5. Give general advice for taking this type of medication
+
+GUIDELINES:
+1. Be accurate and evidence-based
+2. Prioritize safety - highlight any serious risks
+3. Include foods that can naturally help with the same condition
+4. Be clear about the evidence level for natural alternatives
+5. Always recommend consulting with a doctor before making changes
+6. Explain everything in simple, everyday language
+`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: MODEL_ID,
+            contents: prompt,
+            config: {
+                systemInstruction: "You are a knowledgeable pharmaceutical AI advisor. Provide accurate drug information while emphasizing safety. When suggesting alternatives, prioritize those with fewer side effects. For natural alternatives, be honest about evidence levels and never suggest stopping prescribed medications without doctor approval.",
+                temperature: 0.3,
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        originalDrug: {
+                            type: Type.OBJECT,
+                            properties: {
+                                name: { type: Type.STRING },
+                                genericName: { type: Type.STRING },
+                                drugClass: { type: Type.STRING },
+                                commonUses: { type: Type.ARRAY, items: { type: Type.STRING } },
+                                sideEffects: { type: Type.ARRAY, items: { type: Type.STRING } },
+                                warnings: { type: Type.ARRAY, items: { type: Type.STRING } },
+                                averageCost: { type: Type.STRING },
+                                prescription: { type: Type.BOOLEAN }
+                            },
+                            required: ['name', 'genericName', 'drugClass', 'commonUses', 'sideEffects', 'warnings', 'prescription']
+                        },
+                        saferAlternatives: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    name: { type: Type.STRING },
+                                    genericName: { type: Type.STRING },
+                                    safetyRating: { type: Type.STRING, enum: ['Safer', 'Similar', 'Use Caution'] },
+                                    reason: { type: Type.STRING },
+                                    costComparison: { type: Type.STRING, enum: ['Cheaper', 'Similar', 'More Expensive'] },
+                                    sideEffectComparison: { type: Type.STRING },
+                                    effectiveness: { type: Type.STRING }
+                                },
+                                required: ['name', 'genericName', 'safetyRating', 'reason', 'costComparison', 'effectiveness']
+                            }
+                        },
+                        naturalAlternatives: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    name: { type: Type.STRING },
+                                    type: { type: Type.STRING, enum: ['Food', 'Herb', 'Supplement', 'Lifestyle'] },
+                                    benefits: { type: Type.ARRAY, items: { type: Type.STRING } },
+                                    howToUse: { type: Type.STRING },
+                                    evidenceLevel: { type: Type.STRING, enum: ['Strong', 'Moderate', 'Limited'] },
+                                    warnings: { type: Type.ARRAY, items: { type: Type.STRING } },
+                                    foodSources: { type: Type.ARRAY, items: { type: Type.STRING } }
+                                },
+                                required: ['name', 'type', 'benefits', 'howToUse', 'evidenceLevel', 'warnings']
+                            }
+                        },
+                        interactionWarnings: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        generalAdvice: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        disclaimer: { type: Type.STRING }
+                    },
+                    required: ['originalDrug', 'saferAlternatives', 'naturalAlternatives', 'interactionWarnings', 'generalAdvice', 'disclaimer']
+                }
+            }
+        });
+
+        const text = response.text;
+        if (!text) throw new Error("No response from AI");
+        return JSON.parse(text) as DrugComparisonResult;
+
+    } catch (error) {
+        console.error("Drug comparison failed:", error);
         throw error;
     }
 };
