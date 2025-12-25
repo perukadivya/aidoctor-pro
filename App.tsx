@@ -60,13 +60,22 @@ const App: React.FC = () => {
     const [isGettingSecondOpinion, setIsGettingSecondOpinion] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Load auth state on mount
+    // Loading state for auth
+    const [authLoading, setAuthLoading] = useState(true);
+
+    // Load auth state on mount using Firebase auth state observer
     useEffect(() => {
-        const currentUser = authService.getCurrentUser();
-        if (currentUser) {
-            setUser(currentUser);
-            loadUserData(currentUser.id);
-        }
+        const unsubscribe = authService.onAuthChange((firebaseUser) => {
+            if (firebaseUser) {
+                setUser(firebaseUser);
+                loadUserData(firebaseUser.id);
+            } else {
+                setUser(null);
+            }
+            setAuthLoading(false);
+        });
+
+        return () => unsubscribe();
     }, []);
 
     // Load user data
@@ -76,9 +85,9 @@ const App: React.FC = () => {
         setConsultations(userData.consultations);
     };
 
-    // Handle login
-    const handleLogin = (email: string, password: string) => {
-        const result = authService.login(email, password);
+    // Handle login (async)
+    const handleLogin = async (email: string, password: string) => {
+        const result = await authService.login(email, password);
         if (result.success && result.user) {
             setUser(result.user);
             loadUserData(result.user.id);
@@ -87,9 +96,9 @@ const App: React.FC = () => {
         return result;
     };
 
-    // Handle register
-    const handleRegister = (email: string, password: string, name: string) => {
-        const result = authService.register(email, password, name);
+    // Handle register (async)
+    const handleRegister = async (email: string, password: string, name: string) => {
+        const result = await authService.register(email, password, name);
         if (result.success && result.user) {
             setUser(result.user);
             loadUserData(result.user.id);
@@ -98,13 +107,29 @@ const App: React.FC = () => {
         return result;
     };
 
-    // Handle logout
-    const handleLogout = () => {
-        authService.logout();
+    // Handle Google sign-in (async)
+    const handleGoogleSignIn = async () => {
+        const result = await authService.signInWithGoogle();
+        if (result.success && result.user) {
+            setUser(result.user);
+            loadUserData(result.user.id);
+            setShowAuth(false);
+        }
+        return result;
+    };
+
+    // Handle logout (async)
+    const handleLogout = async () => {
+        await authService.logout();
         setUser(null);
         setProfile(null);
         setConsultations([]);
         setCurrentView('home');
+    };
+
+    // Continue as guest
+    const handleContinueAsGuest = () => {
+        setShowAuth(false);
     };
 
     // Save profile (with user association)
@@ -216,7 +241,14 @@ const App: React.FC = () => {
 
     // Show auth form
     if (showAuth) {
-        return <AuthForm onLogin={handleLogin} onRegister={handleRegister} />;
+        return (
+            <AuthForm
+                onLogin={handleLogin}
+                onRegister={handleRegister}
+                onGoogleSignIn={handleGoogleSignIn}
+                onContinueAsGuest={handleContinueAsGuest}
+            />
+        );
     }
 
     // Render content based on view
